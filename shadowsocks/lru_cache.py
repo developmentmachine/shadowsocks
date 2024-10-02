@@ -19,6 +19,7 @@ from __future__ import absolute_import, division, print_function, \
     with_statement
 
 import collections
+import collections.abc
 import logging
 import time
 
@@ -31,7 +32,7 @@ import time
 #       as sweep() causes long pause
 
 
-class LRUCache(collections.MutableMapping):
+class LRUCache(collections.abc.MutableMapping):
     """This class is not thread safe"""
 
     def __init__(self, timeout=60, close_callback=None, *args, **kwargs):
