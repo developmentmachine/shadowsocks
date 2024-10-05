@@ -287,17 +287,23 @@ class DNSResolver(object):
                     if common.is_ip(server) == socket.AF_INET:
                         if type(server) != str:
                             server = server.decode('utf8')
+                        logging.debug('parsed nameserver: %s', server)
                         self._servers.append(server)
         except IOError:
             pass
         if not self._servers:
-            self._servers = ['8.8.4.4', '8.8.8.8']
+            self._servers = ['10.19.128.2', '8.8.8.8']
 
     def _parse_hosts(self):
         etc_path = '/etc/hosts'
         if 'WINDIR' in os.environ:
+            logging.debug('running on windows')
             etc_path = os.environ['WINDIR'] + '/system32/drivers/etc/hosts'
         try:
+            logging.debug('os path: %s', etc_path)
+            # check if it is termux
+            if os.path.exists('/data/data/com.termux/files/usr/bin/pkg'):
+                etc_path = '$PREFIX/etc/hosts'
             with open(etc_path, 'rb') as f:
                 for line in f.readlines():
                     line = line.strip()
@@ -314,6 +320,7 @@ class DNSResolver(object):
                         if hostname:
                             self._hosts[hostname] = ip
         except IOError:
+            logging.error('failed to read etc resolv file')
             self._hosts['localhost'] = '127.0.0.1'
 
     def add_to_loop(self, loop):
@@ -411,6 +418,7 @@ class DNSResolver(object):
     def resolve(self, hostname, callback):
         if type(hostname) != bytes:
             hostname = hostname.encode('utf8')
+            logging.debug('resolve hostname: %s', hostname)
         if not hostname:
             callback(None, Exception('empty hostname'))
         elif common.is_ip(hostname):
