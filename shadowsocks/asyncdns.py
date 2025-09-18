@@ -297,13 +297,14 @@ class DNSResolver(object):
     def _parse_hosts(self):
         etc_path = '/etc/hosts'
         if 'WINDIR' in os.environ:
-            logging.debug('running on windows')
+            logging.info('running on windows')
             etc_path = os.environ['WINDIR'] + '/system32/drivers/etc/hosts'
         try:
-            logging.debug('os path: %s', etc_path)
+            logging.info('running on termux')
             # check if it is termux
             if os.path.exists('/data/data/com.termux/files/usr/bin/pkg'):
-                etc_path = '$PREFIX/etc/hosts'
+                etc_path = etc_path = os.path.join(os.environ.get('PREFIX', '/data/data/com.termux/files/usr'), 'etc/hosts')
+                logging.info('termux os path: %s', etc_path)
             with open(etc_path, 'rb') as f:
                 for line in f.readlines():
                     line = line.strip()
@@ -320,7 +321,7 @@ class DNSResolver(object):
                         if hostname:
                             self._hosts[hostname] = ip
         except IOError:
-            logging.error('failed to read etc resolv file')
+            logging.error('failed to read etc resolv file, please check if the /etc/hosts file exists. if running on termux, please check if the /data/data/com.termux/files/usr/etc/hosts file exists.')
             self._hosts['localhost'] = '127.0.0.1'
 
     def add_to_loop(self, loop):
